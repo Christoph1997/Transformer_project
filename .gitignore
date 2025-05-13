@@ -1,0 +1,10 @@
+# Log-Dateien
+*.log
+
+# VS Code Projektdateien
+.vscode/
+
+# Virtuelle Umgebung ignorieren
+.venv/
+__pycache__/
+*.pyc
