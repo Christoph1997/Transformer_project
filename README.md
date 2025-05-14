@@ -1,8 +1,8 @@
-# Mein Python-Projekt
+# Transformer Python Project
 
-Dies ist ein Beispielprojekt mit Python 3.12 und virtueller Umgebung.
+This is a project to compare different Transformers with different datasets
 
-## Starten
+## Start
 
 ```bash
 python main.py
