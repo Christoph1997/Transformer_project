@@ -1,6 +1,10 @@
 # Log-Dateien
 *.log
 
+# Modelle
+.models/
+bert-amazon-polarity/
+
 # VS Code Projektdateien
 .vscode/
 

@@ -41,11 +41,17 @@ def main():
 
     # Initialize trainer and finetune model
     print("Initialize training arguments.")
-    trainer_instance = trainer.Trainer(model.model, tokenized_dataset)
+    trainer_instance = trainer.Trainer_instance(model.model, tokenized_dataset)
     trainer_instance.set_training_arguments(epochs=epochs, batch_size=batch_size)  
     trainer_instance.train()
     trainer_instance.evaluate()
     print("Model trained and evaluated.")
+
+    # Save model
+    print("Saving model.")
+    save_path = f"./.models/{model_name}_amazon-polarity"
+    trainer_instance.trainer.save_model(save_path)
+    dataset.tokenizer.save_pretrained(save_path)
 
     # Measure time
     end_time = time.perf_counter()

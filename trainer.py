@@ -2,7 +2,7 @@ from transformers import TrainingArguments, Trainer
 from sklearn.metrics import accuracy_score, f1_score
 import torch
 
-class Trainer:
+class Trainer_instance:
     def __init__(self, model, tokenized_dataset):
         self.model = model
         self.train_dataset = tokenized_dataset["train"]
@@ -17,7 +17,7 @@ class Trainer:
             per_device_train_batch_size=batch_size,
             per_device_eval_batch_size=batch_size,
             num_train_epochs=epochs,
-            evaluation_strategy="epoch",
+            eval_strategy="epoch",
             save_strategy="epoch",
             logging_steps=100,
             load_best_model_at_end=True,
@@ -40,7 +40,7 @@ class Trainer:
         trainer.train()
         self.trainer = trainer
 
-    
+    @staticmethod
     def compute_metrics(p):
         """Define evaluation metrics"""
         preds = torch.argmax(torch.tensor(p.predictions), axis=1)

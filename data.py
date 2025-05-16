@@ -21,12 +21,13 @@ class Dataset:
         self.tokenizer = BertTokenizerFast.from_pretrained(self.model_name)
 
     def preprocess(self):
-        # 4. Preprocessing function
+        # Preprocessing function
         def tokenize_dataset(example):
-            text = example["title"] + " " + example["content"]
-            return self.tokenizer(text, padding="max_length", truncation=True, max_length=256)
+            texts = [t + " " + c for t, c in zip(example["title"], example["content"])]
+            return self.tokenizer(texts, padding="max_length", truncation=True, max_length=256)
 
-        # 5. Tokenize dataset
+        # Tokenize dataset
+        # Stick with batched=True for faster processing
         tokenized_dataset = self.dataset.map(tokenize_dataset, batched=True)
         tokenized_dataset = tokenized_dataset.rename_column("label", "labels")
         tokenized_dataset.set_format("torch", columns=["input_ids", "attention_mask", "labels"])
