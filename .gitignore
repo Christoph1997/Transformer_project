@@ -5,6 +5,9 @@
 .models/
 bert-amazon-polarity/
 
+# Results
+results/
+
 # VS Code Projektdateien
 .vscode/
 
