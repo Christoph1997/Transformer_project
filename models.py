@@ -1,4 +1,4 @@
-from transformers import BertForSequenceClassification
+from transformers import AutoModelForSequenceClassification
 
 # Load model
 class Model:
@@ -8,4 +8,4 @@ class Model:
 
     def load_model(self):
         # Load model
-        self.model = BertForSequenceClassification.from_pretrained(self.model_name, num_labels=2)
+        self.model = AutoModelForSequenceClassification.from_pretrained(self.model_name, num_labels=2)

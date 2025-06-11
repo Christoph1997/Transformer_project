@@ -1,5 +1,5 @@
 from datasets import load_dataset
-from transformers import BertTokenizerFast
+from transformers import AutoTokenizer
 
 
 class Dataset:
@@ -18,7 +18,7 @@ class Dataset:
 
     def load_tokenizer(self):
         # Tokenizer
-        self.tokenizer = BertTokenizerFast.from_pretrained(self.model_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
 
     def preprocess(self):
         # Preprocessing function
