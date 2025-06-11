@@ -7,13 +7,13 @@ class Trainer_instance:
         self.model = model
         self.train_dataset = tokenized_dataset["train"]
         self.eval_dataset = tokenized_dataset["test"]
-        self.trainer = None
+        self.trainer = {}
         self.training_args = None
 
-    def set_training_arguments(self, epochs=2, batch_size=16):
+    def set_training_arguments(self, epochs, batch_size, dataset_name):
         """Training arguments"""
         self.training_args = TrainingArguments(
-            output_dir="./bert-amazon-polarity",
+            output_dir=f"./bert-{dataset_name}",
             per_device_train_batch_size=batch_size,
             per_device_eval_batch_size=batch_size,
             num_train_epochs=epochs,
@@ -27,7 +27,7 @@ class Trainer_instance:
             report_to="none",  # disables W&B or TensorBoard
         )
 
-    def train(self):
+    def train(self, model_name):
         """Create Trainer"""
         trainer = Trainer(
             model=self.model,
@@ -38,7 +38,7 @@ class Trainer_instance:
         )
         # Train the model
         trainer.train()
-        self.trainer = trainer
+        self.trainer[model_name] = trainer
 
     @staticmethod
     def compute_metrics(p):
@@ -53,3 +53,5 @@ class Trainer_instance:
         """Evaluate"""
         results = self.trainer.evaluate()
         print("Evaluation results:", results)
+        return results
+    
