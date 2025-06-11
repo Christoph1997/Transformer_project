@@ -8,9 +8,9 @@ class Dataset:
         self.dataset = None
         self.tokenizer = None
 
-    def load_dataset(self):
-        # Load dataset (Amazon Polarity)
-        self.dataset = load_dataset("amazon_polarity")
+    def load_dataset(self, dataset_name):
+        # Load dataset
+        self.dataset = load_dataset(dataset_name)
 
         # Subsample for faster training
         self.dataset["train"] = self.dataset["train"].shuffle(seed=42).select(range(10000))
