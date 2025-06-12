@@ -32,7 +32,10 @@ def main():
         "bert-large-uncased",
         "roberta-base",
         "distilbert-base-uncased",
-        "xlnet-base-cased"
+        "xlnet-base-cased",
+        "electra-base-discriminator",
+        "longformer-base-4096",
+        "bart-base",
     ]
 
     # Iterate over models
@@ -64,6 +67,7 @@ def run_model(model_name, epochs, batch_size, dataset_name):
     dataset.load_dataset(dataset_name)
     dataset.load_tokenizer()
     tokenized_dataset = dataset.preprocess()
+    dataset.analyze_dataset(result_path)
     print("Dataset and tokenizer initialized.")
 
     # Initialize model
@@ -75,9 +79,10 @@ def run_model(model_name, epochs, batch_size, dataset_name):
     # Initialize trainer and finetune model
     print("Initialize training arguments.")
     trainer_instance = trainer.Trainer_instance(model.model, tokenized_dataset)
-    trainer_instance.set_training_arguments(epochs=epochs, batch_size=batch_size, dataset_name=dataset_name)  
+    trainer_instance.set_training_arguments(epochs=epochs, batch_size=batch_size, dataset_name=dataset_name, model_name=model_name)  
     trainer_instance.train(model_name)
     results = trainer_instance.evaluate(model_name)
+    trainer_instance.visualize_results(model_name, result_path)
 
     print("Model trained and evaluated.")
 
