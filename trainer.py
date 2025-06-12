@@ -49,9 +49,9 @@ class Trainer_instance:
         f1 = f1_score(labels, preds)
         return {"accuracy": acc, "f1": f1}
 
-    def evaluate(self):
+    def evaluate(self, model_name):
         """Evaluate"""
-        results = self.trainer.evaluate()
+        results = self.trainer[model_name].evaluate()
         print("Evaluation results:", results)
         return results
     

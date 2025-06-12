@@ -24,7 +24,7 @@ def main():
     # Parameters for all models
     epochs = 2
     batch_size = 16
-    dataset_name = "amazon-polarity"
+    dataset_name = "amazon_polarity"
 
     # List of model names to iterate over
     model_names = [
@@ -76,14 +76,15 @@ def run_model(model_name, epochs, batch_size, dataset_name):
     print("Initialize training arguments.")
     trainer_instance = trainer.Trainer_instance(model.model, tokenized_dataset)
     trainer_instance.set_training_arguments(epochs=epochs, batch_size=batch_size, dataset_name=dataset_name)  
-    trainer_instance.train()
-    results = trainer_instance.evaluate()
+    trainer_instance.train(model_name)
+    results = trainer_instance.evaluate(model_name)
+
     print("Model trained and evaluated.")
 
     # Save model
     print("Saving model.")
     save_path = f"./.models/{model_name}_{dataset_name}"
-    trainer_instance.trainer.save_model(save_path)
+    trainer_instance.trainer[model_name].save_model(save_path)
     dataset.tokenizer.save_pretrained(save_path)
 
     # Measure time
