@@ -3,7 +3,7 @@
 
 # Modelle
 .models/
-bert-amazon-polarity/
+bert-amazon_polarity/
 
 # Results
 results/
