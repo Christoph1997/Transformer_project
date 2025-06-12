@@ -38,7 +38,7 @@ class Dataset:
 
         return tokenized_dataset
     
-    def analyze_dataset(self):
+    def analyze_dataset(self, result_path):
         """Analyze dataset"""
         print("Dataset analysis:")
         print(f"Number of training examples: {len(self.dataset['train'])}")
@@ -70,6 +70,6 @@ class Dataset:
         plt.title("Label Distribution in Train and Test Sets")
         plt.legend()
         plt.grid(axis='y')
-        plt.savefig("results/label_distribution_train_test.png")
+        plt.savefig(f"{result_path}/label_distribution_train_test.png")
         plt.close()
         
