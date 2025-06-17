@@ -2,6 +2,7 @@ import torch
 from transformers import TrainingArguments, Trainer
 from sklearn.metrics import accuracy_score, f1_score, classification_report, confusion_matrix, ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
+import csv
 
 
 class Trainer_instance:
@@ -25,7 +26,6 @@ class Trainer_instance:
             save_strategy="epoch",
             logging_strategy="epoch",
             logging_dir=f"./results/{model_path}",
-            logging_steps=100,
             load_best_model_at_end=True,
             metric_for_best_model="accuracy",
             save_total_limit=1,
@@ -35,6 +35,9 @@ class Trainer_instance:
 
     def train(self, model_name):
         """Create Trainer"""
+        if model_name == "facebook/bart-base":
+            # For BART, we need to use a different compute_metrics function
+            self.compute_metrics = self.compute_bart_metrics
         trainer = Trainer(
             model=self.model,
             args=self.training_args,
@@ -55,6 +58,15 @@ class Trainer_instance:
         f1 = f1_score(labels, preds)
         return {"accuracy": acc, "f1": f1}
 
+    @staticmethod
+    def compute_bart_metrics(p):
+        """Define evaluation metrics for bart"""
+        preds = torch.argmax(torch.tensor(p.predictions[0]), axis=1)
+        labels = p.label_ids
+        acc = accuracy_score(labels, preds)
+        f1 = f1_score(labels, preds)
+        return {"accuracy": acc, "f1": f1}
+
     def evaluate(self, model_name):
         """Evaluate"""
         results = self.trainer[model_name].evaluate()
@@ -64,13 +76,18 @@ class Trainer_instance:
     def visualize_results(self, model_name, result_path):
         """Visualize results"""
         preds = self.trainer[model_name].predict(self.eval_dataset)
-        y_pred = torch.argmax(torch.tensor(preds.predictions), axis=1)
+        if model_name == "facebook/bart-base":
+            # For BART, we need to use a different prediction
+            y_pred = torch.argmax(torch.tensor(preds.predictions[0]), axis=1)
+        else:
+            # For other models, we can use the standard prediction
+            y_pred = torch.argmax(torch.tensor(preds.predictions), axis=1)
         y_true = preds.label_ids
-        label_names = self.train_dataset.features["label"].names
+        label_names = self.train_dataset.features["labels"].names
         
         # Print and save evaluation metrics
         print("Classification Report:")
-        report = classification_report(y_true, y_pred)
+        report = classification_report(y_true, y_pred, digits=4)
         print(report)
         with open(f"{result_path}/classification_report.txt", "w") as f:
             f.write(report)
@@ -89,12 +106,10 @@ class Trainer_instance:
         if hasattr(self.trainer[model_name], "state"):
             history = self.trainer[model_name].state.log_history
             if history:
-                epochs = [log["epoch"] for log in history if "epoch" in log]
-                train_acc = [log["train_accuracy"] for log in history if "train_accuracy" in log]
+                epochs = [log["epoch"] for log in history if "eval_accuracy" in log]
                 eval_acc = [log["eval_accuracy"] for log in history if "eval_accuracy" in log]
 
                 plt.figure(figsize=(10, 5))
-                plt.plot(epochs, train_acc, label='Train Accuracy')
                 plt.plot(epochs, eval_acc, label='Eval Accuracy')
                 plt.xlabel('Epochs')
                 plt.ylabel('Accuracy')
@@ -103,5 +118,12 @@ class Trainer_instance:
                 plt.grid(True)
                 plt.savefig(f"{result_path}/accuracy_over_epochs.png")
                 plt.close()
+
+                # Write to CSV
+                with open(f"{result_path}/eval_accuracy.csv", mode='w', newline='') as file:
+                    writer = csv.writer(file)
+                    writer.writerow(["Accuracy"])
+                    for value in eval_acc:
+                        writer.writerow([value])
         
         return cm
