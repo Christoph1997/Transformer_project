@@ -30,13 +30,11 @@ def main():
 
     # List of model names to iterate over
     model_names = [
-        "bert-base-uncased",
-        "bert-large-uncased",
+        "bert-base-cased",
         "roberta-base",
-        "distilbert-base-uncased",
+        "distilbert-base-cased",
         "xlnet-base-cased",
         "google/electra-base-discriminator",
-        "allenai/longformer-base-4096",
         "facebook/bart-base",
     ]
 
@@ -118,7 +116,7 @@ def plot_model_comparison(results_dict):
         plt.figure(figsize=(10, 5))
         plt.bar(x, accuracies, width=0.4, label='Accuracy', align='center')
         plt.bar([i + 0.4 for i in x], f1_scores, width=0.4, label='F1 Score', align='center')
-        plt.xticks([i + 0.2 for i in x], models)
+        plt.xticks([i + 0.2 for i in x], models, rotation=45)
         plt.ylabel('Score')
         plt.title('Transformer Model Performance')
         plt.legend()
