@@ -33,18 +33,43 @@ class Trainer_instance:
             report_to="none",  # disables W&B or TensorBoard
         )
 
-    def train(self, model_name):
+    def train(self, model_name, dataset_name):
         """Create Trainer"""
-        if model_name == "facebook/bart-base":
+        if model_name == "facebook/bart-base" and dataset_name == "McAuley-Lab/Amazon-Reviews-2023":
             # For BART, we need to use a different compute_metrics function
-            self.compute_metrics = self.compute_bart_metrics
-        trainer = Trainer(
-            model=self.model,
-            args=self.training_args,
-            train_dataset=self.train_dataset,
-            eval_dataset=self.eval_dataset,
-            compute_metrics=self.compute_metrics,
-        )
+            trainer = Trainer(
+                model=self.model,
+                args=self.training_args,
+                train_dataset=self.train_dataset,
+                eval_dataset=self.eval_dataset,
+                compute_metrics=self.compute_multiclass_bart_metrics,
+            )
+        elif model_name == "facebook/bart-base":
+            # For BART, we need to use a different compute_metrics function
+            trainer = Trainer(
+                model=self.model,
+                args=self.training_args,
+                train_dataset=self.train_dataset,
+                eval_dataset=self.eval_dataset,
+                compute_metrics=self.compute_bart_metrics,
+            )
+        elif dataset_name == "McAuley-Lab/Amazon-Reviews-2023":
+            # For multiclass, we need to use a different compute_metrics function
+            trainer = Trainer(
+                model=self.model,
+                args=self.training_args,
+                train_dataset=self.train_dataset,
+                eval_dataset=self.eval_dataset,
+                compute_metrics=self.compute_multiclass_metrics,
+            )
+        else:
+            trainer = Trainer(
+                model=self.model,
+                args=self.training_args,
+                train_dataset=self.train_dataset,
+                eval_dataset=self.eval_dataset,
+                compute_metrics=self.compute_metrics,
+            )
         # Train the model
         trainer.train()
         self.trainer[model_name] = trainer
@@ -66,6 +91,24 @@ class Trainer_instance:
         acc = accuracy_score(labels, preds)
         f1 = f1_score(labels, preds)
         return {"accuracy": acc, "f1": f1}
+    
+    @staticmethod
+    def compute_multiclass_metrics(p):
+        """Define evaluation metrics for multiclass classification"""
+        preds = torch.argmax(torch.tensor(p.predictions), axis=1)
+        labels = p.label_ids
+        acc = accuracy_score(labels, preds)
+        f1 = f1_score(labels, preds, average="weighted")
+        return {"accuracy": acc, "f1": f1}
+    
+    @staticmethod
+    def compute_multiclass_bart_metrics(p):
+        """Define evaluation metrics for bart"""
+        preds = torch.argmax(torch.tensor(p.predictions[0]), axis=1)
+        labels = p.label_ids
+        acc = accuracy_score(labels, preds)
+        f1 = f1_score(labels, preds, average="weighted")
+        return {"accuracy": acc, "f1": f1}
 
     def evaluate(self, model_name):
         """Evaluate"""
@@ -73,7 +116,7 @@ class Trainer_instance:
         print("Evaluation results:", results)
         return results
     
-    def visualize_results(self, model_name, result_path):
+    def visualize_results(self, model_name, result_path, dataset_name):
         """Visualize results"""
         preds = self.trainer[model_name].predict(self.eval_dataset)
         if model_name == "facebook/bart-base":
@@ -83,7 +126,11 @@ class Trainer_instance:
             # For other models, we can use the standard prediction
             y_pred = torch.argmax(torch.tensor(preds.predictions), axis=1)
         y_true = preds.label_ids
-        label_names = self.train_dataset.features["labels"].names
+        if dataset_name == "McAuley-Lab/Amazon-Reviews-2023":
+            # For Amazon Reviews Multi, labels are 0-4
+            label_names = [f"{i} Star" for i in range(1,6)]
+        else:
+            label_names = self.train_dataset.features["labels"].names
         
         # Print and save evaluation metrics
         print("Classification Report:")

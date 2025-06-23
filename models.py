@@ -6,6 +6,10 @@ class Model:
         self.model_name = model_name
         self.model = None
 
-    def load_model(self):
+    def load_model(self, dataset_name):
         # Load model
-        self.model = AutoModelForSequenceClassification.from_pretrained(self.model_name, num_labels=2)
+        if dataset_name == "McAuley-Lab/Amazon-Reviews-2023":
+            # Load model with 5 labels for Amazon Reviews dataset
+            self.model = AutoModelForSequenceClassification.from_pretrained(self.model_name, num_labels=5)
+        else:
+            self.model = AutoModelForSequenceClassification.from_pretrained(self.model_name, num_labels=2)

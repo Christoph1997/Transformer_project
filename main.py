@@ -26,7 +26,7 @@ def main():
     # Parameters for all models
     epochs = 2
     batch_size = 16  # Default batch size, will be adjusted for Longformer
-    dataset_name = "amazon_polarity"
+    dataset_name = "McAuley-Lab/Amazon-Reviews-2023"  # "amazon_polarity"
 
     # List of model names to iterate over
     model_names = [
@@ -69,22 +69,22 @@ def run_model(model_name, epochs, batch_size, dataset_name):
     dataset = data.Dataset(model_name)
     dataset.load_dataset(dataset_name)
     dataset.load_tokenizer()
-    tokenized_dataset = dataset.preprocess()
-    dataset.analyze_dataset(result_path)
+    dataset.preprocess(dataset_name)
+    dataset.analyze_dataset(result_path, dataset_name)
     print("Dataset and tokenizer initialized.")
 
     # Initialize model
     print("Initialize model.")
     model = models.Model(model_name)
-    model.load_model()
+    model.load_model(dataset_name)
     print("Model initialized.")
 
     # Initialize trainer and finetune model
     print("Initialize training arguments.")
-    trainer_instance = trainer.Trainer_instance(model.model, tokenized_dataset)
+    trainer_instance = trainer.Trainer_instance(model.model, dataset.tokenized_dataset)
     trainer_instance.set_training_arguments(epochs=epochs, batch_size=batch_size, dataset_name=dataset_name, model_name=model_name)  
-    trainer_instance.train(model_name)
-    trainer_instance.visualize_results(model_name, result_path)
+    trainer_instance.train(model_name, dataset_name)
+    trainer_instance.visualize_results(model_name, result_path, dataset_name)
     results = trainer_instance.evaluate(model_name)
 
     print("Model trained and evaluated.")
