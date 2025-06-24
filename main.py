@@ -25,8 +25,14 @@ def main():
 
     # Parameters for all models
     epochs = 2
-    batch_size = 16  # Default batch size, will be adjusted for Longformer
-    dataset_name = "McAuley-Lab/Amazon-Reviews-2023"  # "amazon_polarity"
+    batch_size = 16
+    train_samples = 10000 
+
+    # Dataset names
+    dataset_names =[
+        "amazon_polarity",
+        "McAuley-Lab/Amazon-Reviews-2023",
+    ]
 
     # List of model names to iterate over
     model_names = [
@@ -40,22 +46,20 @@ def main():
 
     # Iterate over models
     results_dict = {}
-    for model_name in model_names:
-        print(f"\n\nCalculating {model_name} model with {epochs} epochs and batch size {batch_size}.")
-        results_dict[model_name] = run_model(model_name, epochs, batch_size, dataset_name)
+    for dataset_name in dataset_names:
+        for model_name in model_names:
+            print(f"\n\nCalculating {model_name} model with {epochs} epochs and batch size {batch_size}.")
+            results_dict[model_name] = run_model(model_name, epochs, batch_size, dataset_name, train_samples)
 
-    # Obtain general results
-    plot_model_comparison(results_dict)
+        # Obtain general results
+        plot_model_comparison(results_dict, dataset_name)
     print("All models have been trained and evaluated.")
 
 
-def run_model(model_name, epochs, batch_size, dataset_name):
+def run_model(model_name, epochs, batch_size, dataset_name, train_samples):
     """
     Function to run the model fine-tuning and evaluation.
     """
-    # Longformer requires a smaller batch size due to memory constraints
-    if model_name == "allenai/longformer-base-4096":
-         batch_size = 8 
     # Check if result folder exists
     result_path = f"./results/{model_name}_{dataset_name}"
     # Create the folder if it doesn't exist
@@ -67,7 +71,7 @@ def run_model(model_name, epochs, batch_size, dataset_name):
     # Load dataset and tokenize it
     print("Initialize dataset and tokenizer.")
     dataset = data.Dataset(model_name)
-    dataset.load_dataset(dataset_name)
+    dataset.load_dataset(dataset_name, train_samples)
     dataset.load_tokenizer()
     dataset.preprocess(dataset_name)
     dataset.analyze_dataset(result_path, dataset_name)
@@ -84,7 +88,7 @@ def run_model(model_name, epochs, batch_size, dataset_name):
     trainer_instance = trainer.Trainer_instance(model.model, dataset.tokenized_dataset)
     trainer_instance.set_training_arguments(epochs=epochs, batch_size=batch_size, dataset_name=dataset_name, model_name=model_name)  
     trainer_instance.train(model_name, dataset_name)
-    trainer_instance.visualize_results(model_name, result_path, dataset_name)
+    trainer_instance.visualize_results(model_name, result_path, dataset_name, dataset.dataset)
     results = trainer_instance.evaluate(model_name)
 
     print("Model trained and evaluated.")
@@ -105,7 +109,7 @@ def run_model(model_name, epochs, batch_size, dataset_name):
     return results
 
 
-def plot_model_comparison(results_dict):
+def plot_model_comparison(results_dict, dataset_name):
         """Plot model comparison"""
         # Plotting accuracy and F1 score for each model
         models = list(results_dict.keys())
@@ -121,11 +125,11 @@ def plot_model_comparison(results_dict):
         plt.title('Transformer Model Performance')
         plt.legend()
         plt.tight_layout()
-        plt.savefig("./results/accuracy_f1score.png")
+        plt.savefig(f"./results/{dataset_name}_accuracy_f1score.png")
         plt.close()
         
         # Save results to CSV
-        with open("./results/accuracy_f1score.csv", "w", newline="") as f:
+        with open(f"./results/{dataset_name}_accuracy_f1score.csv", "w", newline="") as f:
             writer = csv.writer(f)
             # Write header
             writer.writerow(["Model", "Accuracy", "F1 Score"])

@@ -1,6 +1,6 @@
 import numpy as np
 
-from datasets import load_dataset, ClassLabel, concatenate_datasets, Features, Value
+from datasets import load_dataset, concatenate_datasets, Features, Value
 from transformers import AutoTokenizer
 import matplotlib.pyplot as plt
 from collections import Counter
@@ -13,7 +13,7 @@ class Dataset:
         self.tokenized_dataset = {}
         self.tokenizer = None
 
-    def load_dataset(self, dataset_name):
+    def load_dataset(self, dataset_name, train_samples):
         # Load dataset
         if dataset_name == "McAuley-Lab/Amazon-Reviews-2023":
             # Load Amazon Reviews Multi dataset
@@ -24,12 +24,12 @@ class Dataset:
             self.dataset = self.dataset.shuffle(seed=42)
             # Cast label to int
             self.dataset["full"] = self.dataset["full"].cast(Features({**self.dataset["full"].features,"rating": Value("int32")}))
-            split = self.dataset["full"].train_test_split(test_size=2000, seed=42)
+            split = self.dataset["full"].train_test_split(test_size=int(train_samples/5), seed=42)
             # Get 2000 examples per class (for a total of 10,000 with 5 classes)
             balanced_train_splits = []
             for label in range(5):
                 per_class = split["train"].filter(lambda x: x["rating"] == label)
-                balanced_per_class = per_class.shuffle(seed=42).select(range(2000))
+                balanced_per_class = per_class.shuffle(seed=42).select(range(int(train_samples/5)))
                 balanced_train_splits.append(balanced_per_class)
             self.dataset["train"] = concatenate_datasets(balanced_train_splits)
             self.dataset["test"] = split["test"]
@@ -37,8 +37,8 @@ class Dataset:
         else:
             self.dataset = load_dataset(dataset_name)
             # Subsample for faster training
-            self.dataset["train"] = self.dataset["train"].shuffle(seed=42).select(range(10000))
-            self.dataset["test"] = self.dataset["test"].shuffle(seed=42).select(range(2000))
+            self.dataset["train"] = self.dataset["train"].shuffle(seed=42).select(range(train_samples))
+            self.dataset["test"] = self.dataset["test"].shuffle(seed=42).select(range(int(train_samples/5)))
 
     def load_tokenizer(self):
         # Tokenizer

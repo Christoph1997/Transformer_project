@@ -116,7 +116,7 @@ class Trainer_instance:
         print("Evaluation results:", results)
         return results
     
-    def visualize_results(self, model_name, result_path, dataset_name):
+    def visualize_results(self, model_name, result_path, dataset_name, dataset):
         """Visualize results"""
         preds = self.trainer[model_name].predict(self.eval_dataset)
         if model_name == "facebook/bart-base":
@@ -131,7 +131,22 @@ class Trainer_instance:
             label_names = [f"{i} Star" for i in range(1,6)]
         else:
             label_names = self.train_dataset.features["labels"].names
-        
+
+        # Open file to write misclassified samples
+        with open(f"{result_path}/misclassified.txt", "w", encoding="utf-8") as f:
+            for i, (true, pred) in enumerate(zip(y_true, y_pred)):
+                if true != pred:
+                    title = dataset["test"][i]["title"]
+                    if dataset_name == "McAuley-Lab/Amazon-Reviews-2023":
+                        text = dataset["test"][i]["text"]
+                    else:
+                        text = dataset["test"][i]["content"]
+                    error_type = (
+                        f"False Positive for class {pred.item()} / "
+                        f"False Negative for class {true}"
+                    )
+                    f.write(f"{error_type}\nTitle: {title}\nText: {text}\nTrue: {true}, Pred: {pred.item()}\n\n")
+                
         # Print and save evaluation metrics
         print("Classification Report:")
         report = classification_report(y_true, y_pred, digits=4)
